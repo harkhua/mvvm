@@ -1,0 +1,17 @@
+{
+    "compilerOptions": {
+        "module": "amd",
+        "target": "es3",
+        "rootDir": "./",
+        "outDir": "../dist",
+        "removeComments": true,
+        "declaration": false,
+        // "declarationDir": "../modules",
+        "sourceMap": false,
+        "baseUrl": "./mvvm",
+        "lib": [
+            "ES2015",
+            "dom"
+        ]
+    }
+}
