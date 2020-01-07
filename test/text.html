@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html>
+    <head lang="en">
+        <meta charset="UTF-8">
+        <title></title>
+    </head>
+    <style>
+        .blue {
+            color: #00f;
+        }
+        .active {
+            color: #0088cc;
+        }
+        .red {
+            color: #F00;
+        }
+    </style>
+    <body>
+        <div id="test"> 
+            <div>{{test1}}</div>
+            <p>{{test1}} - {{setAA}} - {{setBB}}</p>
+            <p>{{testAa.a + testAa.b}}</p>
+            <p v-text="testComAA"></p>
+        </div>
+        <script src="./lib/sea.js"></script>
+        <script>
+            seajs.use(['./dist/main'], function (o){
+                window.$Mvvm = new o.Mvvm({
+                    data: {
+                        testComAA: "parent testcomponents",
+                        testcss: "testCss",
+                        aNum: {
+                            a: 1,
+                            b: 2
+                        },
+                        testAa: {
+                            a: 'XXXX',
+                            b: ", this is a testAa's b"
+                        },
+                        aa: "abc",
+                        test1: "Test1",
+                        setAA: "set aa",
+                        setBB: "set bb",
+                        testBb: "this is a testBb",
+                        testCc: "this is a testCc",
+                        testStyle: {"background": "#FF0", width: 123, height: 232},
+                        testShow: false,
+                        testArr: ["1", "test", {a: "123", b: "2222"}],
+                        testTodoMvc: ['a'],
+                        newTodo: "",
+                        testForA: [
+                            {a: "0-1", b: "0-2"},
+                            {a: "1-1", b: "1-2"}
+                        ],
+                        testForB: [
+                            {
+                                a: [
+                                    {
+                                        a1: [
+                                            "第三层for idx 0-0-0",
+                                            "第三层for idx 0-0-1",
+                                        ],
+                                        b1: "第二层for idx 0-0"
+                                    },
+                                    {
+                                        a1: [
+                                            "第三层for idx 0-1-0",
+                                            "第三层for idx 0-1-1",
+                                        ],
+                                        b1: "第二层for idx 0-1"
+                                    }
+                                ],
+                                b: "第一层for idx 0"
+                            },
+                            {
+                                a: [
+                                    {
+                                        a1: [
+                                            "第三层for idx 1-0-0",
+                                            "第三层for idx 1-0-1",
+                                        ],
+                                        b1: "第二层for idx 1-0"
+                                    },
+                                    {
+                                        a1: [
+                                            "第三层for idx 1-1-0",
+                                            "第三层for idx 1-1-1",
+                                        ],
+                                        b1: "第二层for idx 1-1"
+                                    }
+                                ],
+                                b: "第一层for idx 1"
+                            }
+                        ],
+                        testForC: {
+                            a: [
+                                {
+                                    a1: [
+                                        "第三层for idx 0-0-0",
+                                        "第三层for idx 0-0-1",
+                                    ],
+                                    b1: "第二层for idx 0-0"
+                                },
+                                {
+                                    a1: [
+                                        "第三层for idx 0-1-0",
+                                        "第三层for idx 0-1-1",
+                                    ],
+                                    b1: "第二层for idx 0-1"
+                                }
+                            ],
+                            b: "第一层for idx 0"
+                        },
+                        // bind语法
+                        imageSrc: "http://img3.imgtn.bdimg.com/it/u=1117144272,3782506471&fm=26&gp=0.jpg",
+                        fileName: "test.jpg",
+                        isRed: true,
+                        classA: "classA",
+                        classB: "classB",
+                        classC: "classC",
+                        isB: true,
+                        isC: false,
+                        size: 30,
+                        styleObjectA: {"color": "#F00", "fontSize": "30px"},
+                        styleObjectB: "font-weight: bold",
+                        someProp: "abcde",
+                        activeClass: 'active',
+                        errorClass: 'text-danger',
+                        classObject: {
+                            active: true,
+                            'text-danger': false
+                        },
+                        isActive: true,
+                        hasError: false,
+                        bindVal: "测试双向绑定"
+                    },
+                    el: '#test'
+                    
+                })
+            })
+        </script>
+    </body>
+</html>

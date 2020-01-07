@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html>
+    <head lang="en">
+        <meta charset="UTF-8">
+        <title></title>
+    </head>
+    <style>
+        .blue {
+            color: #00f;
+        }
+        .active {
+            color: #0088cc;
+        }
+        .red {
+            color: #F00;
+        }
+    </style>
+    <body>
+        <div id='example-3'>
+            <input type="text" v-model="bindVal">
+            <div>测试双向绑定：{{bindVal}}</div>
+            <div>{{setBB}}</div>
+    
+            <input type="checkbox" id="jack" value="Jack" v-model="checkedNames">
+            <label for="jack">Jack</label>
+            <input type="checkbox" id="john" value="John" v-model="checkedNames">
+            <label for="john">John</label>
+            <input type="checkbox" id="mike" value="Mike" v-model="checkedNames">
+            <label for="mike">Mike</label>
+            <br>
+            <span>Checked names: {{ checkedNames }}</span>
+        </div>
+        <script src="./lib/sea.js"></script>
+        <script src="./lib/jquery.min.js"></script>
+        <script>
+            seajs.use(['./dist/main'], function (o){
+                var ex3 = window.$$ex3 = new o.Mvvm({
+                    el: '#example-3',
+                    data: {
+                        checkedNames: ["Jack"],
+                        bindVal: "测试双向绑定",
+                        testAa: {
+                            a: 'raozh',
+                            b: ", this is a testAa's b"
+                        }
+                    },
+                    computed: {
+                        setAA: function (){
+                            return this.testAa.a + " " + this.bindVal;
+                        },
+                        setBB: function (){
+                            return this.testAa.a + this.testAa.b + this.bindVal;
+                        }
+                    }
+                })
+            })
+        </script>
+    </body>
+</html>

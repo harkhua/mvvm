@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html>
+    <head lang="en">
+        <meta charset="UTF-8">
+        <title></title>
+    </head>
+    <style>
+        .blue {
+            color: #00f;
+        }
+        .active {
+            color: #0088cc;
+        }
+        .red {
+            color: #F00;
+        }
+    </style>
+    <body>
+        <div id='example-3'>
+            <input type="text" v-model="bindVal">
+            <div>测试双向绑定：{{setAA}}</div>
+            <div>{{setBB}}</div>
+    
+            <input type="checkbox" id="jack" value="Jack" v-model="checkedNames">
+            <label for="jack">Jack</label>
+            <input type="checkbox" id="john" value="John" v-model="checkedNames">
+            <label for="john">John</label>
+            <input type="checkbox" id="mike" value="Mike" v-model="checkedNames">
+            <label for="mike">Mike</label>
+            <br>
+            <span>Checked names: {{ checkedNames }}</span>
+        </div>
+        <div id="example-4">
+            <div v-for="branch in branches">
+                <input type="radio"
+                    :id="branch"
+                    :value="branch"
+                    name="branch"
+                    v-model="currentBranch">
+                <label :for="branch">{{ branch }}</label>
+            </div>
+            <span>Picked: {{ currentBranch }}</span>
+            <ul>
+                <li v-for="record in commits">
+                    <a :href="record.html_url" target="_blank" class="commit">{{ record.sha.slice(0, 7) }}</a>
+                    - <span class="message">{{ record.commit.message | truncate }}</span><br>
+                    by <span class="author"><a :href="record.author.html_url" target="_blank">{{ record.commit.author.name }}</a></span>
+                    at <span class="date">{{ record.commit.author.date | formatDate }}</span>
+                </li>
+            </ul>
+        </div>
+        <div id="example-5">
+            <select v-model="selected">
+                <option disabled value="">请选择</option>
+                <option value="A">A</option>
+                <option value="B">B</option>
+                <option value="C">C</option>
+            </select>
+            <span>Selected: {{ selected }}</span>
+            <button v-on:click="selClick">toB</button>
+        </div>
+        <script src="./lib/sea.js"></script>
+        <script src="./lib/jquery.min.js"></script>
+        <script>
+            seajs.use(['./dist/main'], function (o){
+                var ex3 = window.$$ex3 = new o.Mvvm({
+                    el: '#example-3',
+                    data: {
+                        checkedNames: ["Jack"],
+                        bindVal: "测试双向绑定",
+                        testAa: {
+                            a: 'raozh',
+                            b: ", this is a testAa's b"
+                        }
+                    },
+                    computed: {
+                        setAA: function (){
+                            return this.testAa.a + " " + this.bindVal;
+                        },
+                        setBB: function (){
+                            return this.testAa.a + this.testAa.b + this.bindVal;
+                        }
+                    }
+                })
+                var apiURL = 'https://api.github.com/repos/vuejs/vue/commits?per_page=3&sha='
+                function fetchData () {
+                    var self = this;
+                    var currentBranch = self.get("currentBranch");
+                    $.ajax({
+                        url: apiURL + currentBranch,
+                        dataType: "json",
+                        success: function (json){
+                            self.set('commits', json);
+                        }
+                    })
+                }
+                var ex4 = window.$$ex4 = new o.Mvvm({
+                    el: '#example-4',
+                    data: {
+                        branches: ['master', 'dev'],
+                        currentBranch: 'master',
+                        commits: null
+                    },
+                    created: function (){
+                        fetchData.call(this);
+                    },
+                    watch: {
+                        currentBranch: function (){
+                            fetchData.call(this);
+                        }
+                    },
+                    methods: {
+                        fetchData: function (){
+                            fetchData.call(this);
+                        }
+                    }
+                })
+                var ex5 = window.$$ex5 = new o.Mvvm({
+                    el: '#example-5',
+                    data: {
+                        selected: "",
+                        defSelectd: 'B'
+                    },
+                    methods: {
+                        selClick: function (){
+                            ex5.set("selected", this.defSelectd);
+                        }
+                    }
+                })
+            })
+        </script>
+    </body>
+</html>

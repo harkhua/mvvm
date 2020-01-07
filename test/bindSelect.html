@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html>
+    <head lang="en">
+        <meta charset="UTF-8">
+        <title></title>
+    </head>
+    <style>
+        .blue {
+            color: #00f;
+        }
+        .active {
+            color: #0088cc;
+        }
+        .red {
+            color: #F00;
+        }
+    </style>
+    <body>
+        <div id="example-5">
+            <select v-model="selected">
+                <option disabled value="">请选择</option>
+                <option value="A">A</option>
+                <option value="B">B</option>
+                <option value="C">C</option>
+            </select>
+            <span>Selected: {{ selected }}</span>
+            <button v-on:click="selClick">toB</button>
+        </div>
+        <script src="./lib/sea.js"></script>
+        <script>
+            seajs.use(['./dist/main'], function (o){
+                var ex5 = window.$$ex5 = new o.Mvvm({
+                    el: '#example-5',
+                    data: {
+                        selected: ""
+                    },
+                    methods: {
+                        selClick: function (){
+                            ex5.set("selected", "B");
+                        }
+                    }
+                })
+            })
+        </script>
+    </body>
+</html>
