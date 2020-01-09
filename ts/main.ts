@@ -1,5 +1,5 @@
 import { Store } from "./assist/store";
-import { channel } from "./assist/ini";
+import { channel, clockCls } from "./assist/ini";
 import { getMvvmId, Dom, Vnode } from "./assist/helper";
 import { isFunction, setData, uniqueVn, readData, nextTick } from "./assist/util";
 import { parseVNode } from "./parse/vNode";
@@ -85,8 +85,7 @@ export class Mvvm {
         Dir.parse(vns.children);
         // 挂载回节点
         mount.appendChild(Vnode.toDom(vns));
-        // 处理nextTick
-        // nextTick(() => {})
+        Dom.removeClass(mount, clockCls);
     }
     /**
      * 设置数据

@@ -29,8 +29,16 @@ interface vNode {
     noParse?: boolean; // 带有该标志不解析成 HTMLElement
     channel?: string; // 模块渠道
     __forItemVns__?: vNode[];
-    forEndVn?: vNode;
+    endVn?: vNode;
     oldDisplayVal?: string;
+    __ifExprVNodes__?: ifExprVnodeItem[];
+    dirIf?: boolean;
+}
+type defFn = (...args) => any;
+interface ifExprVnodeItem {
+    vn: vNode;
+    expr: string;
+    dir: 'if' | 'else if' | 'else';
 }
 interface textExprVal {
     val: string;
@@ -40,7 +48,7 @@ interface dirExpr {
     item?: string;
     index?: string; 
     value?: string|textExprVal[];
-    expr?: string;
+    expr?: string | defFn;
 }
 interface dataDepNodeMap {
     [key: string]: vNode[];
