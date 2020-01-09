@@ -34,10 +34,7 @@ namespace vNode {
      */
     export function parse (tpl: string, channel: string): vNode{
         // const out = [] as vNode[];
-        const parent = {
-            name: "#Fragment",
-            children: []
-        } as vNode;
+        const parent = Vnode.createFragmentVn();
         while (tpl){
             textEnd = tpl.indexOf('<'); // 查找待解析标签位置
             // 文本为 <XXX

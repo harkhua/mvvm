@@ -215,7 +215,7 @@ function copyVn (vn: vNode, parent?: vNode) {
         text: vn.text || null,
         dep: vn.attr ? extend(true, {}, vn.dep) : {},
         parent: parent || vn.parent,
-        forEndVn: vn.forEndVn || null,
+        forEndVn: vn.endVn || null,
     } as vNode;
 
     if (vn.children && vn.children.length) {
@@ -541,7 +541,7 @@ export namespace VBind {
             name = <string>depVal.value;
             oBind = parseBind(
                 name,
-                getExprVal(vn, depVal.expr)
+                getExprVal(vn, <string>depVal.expr)
             )
             Vnode.setAttr(
                 <HTMLElement>vn.el,
@@ -615,7 +615,7 @@ export namespace VFor {
         const parentChildren = vn.parent.children;
         const vNodes = [];
         vn.noParse = true;
-        const forEndVn = vn.forEndVn = <vNode>{
+        const forEndVn = vn.endVn = <vNode>{
             id: Vnode.getId(),
             name: '#comment',
             text: `for${new Date().getTime()}`
@@ -649,7 +649,7 @@ export namespace VFor {
                 }
             )
         }
-        updateChildren(vn.parent.el, oldVns, newVns, (vn.forEndVn || <vNode>{}).el);
+        updateChildren(vn.parent.el, oldVns, newVns, (vn.endVn || <vNode>{}).el);
         vn.__forItemVns__ = newVns;
         // patchVnode(oldVns, newVns);
     }
@@ -1088,19 +1088,143 @@ export namespace VShow {
         const dep = vn.dep[dirKey][0];
         updateDisplayVal(
             <HTMLElement>vn.el,
-            !!getExprVal(vn, dep.expr),
+            !!getExprVal(vn, <string>dep.expr),
             vn.oldDisplayVal
         );
     }
 }
 export namespace VIf {
-    export const dirKey = 'VIf';
-    export function init (vn: vNode, value: string){
-        
+    const cacheProcesseIfDir = [];
+    function findPrevIfVn (vns: vNode[], currentIdx: number){
+        let prev;
+        let len = currentIdx;
+        while(--len > -1) {
+            const vn = vns[len];
+            if (!('dirIf' in vn)){
+                break;
+            }
+            if (vn && vn.__ifExprVNodes__) {
+                if (len > 0 && vns[len - 1] && 'dirIf' in vns[len - 1]) {
+                    throw 'Directive(v-if) cannot be nested.'
+                }
+                prev = vn;
+                break;
+            }
+        }
+        return prev;
     }
-    export function parse (){}
-    export function update (){}
+    const elseIfMap = {
+        'v-else-if': 'else if',
+        'v-else': 'else'
+    }
+    /**
+     * 不能多层 if else-if else嵌套
+     * if 优先级低
+     * 建议使用 v-show 指令
+     */
+    export const dirKey = 'VIf';
+    export function init (vn: vNode, value: string, dirName: string){
+        const parent = vn.parent;
+        const parentChildren = parent.children;
+        if (dirName === 'v-if'){
+            const __ifExprVNodes__ = [{
+                expr: value,
+                vn,
+                dir: 'if'
+            }];
+            cacheProcesseIfDir.push(__ifExprVNodes__);
+            const fragment = Vnode.createFragmentVn(<vNode>{
+                __ifExprVNodes__,
+                dirIf: true,
+                parent,
+                channel: vn.channel,
+                dep: {}
+            });
+            vn.parent = fragment;
+            parentChildren.splice(vn._idx, 1, fragment);
+        } else if (elseIfMap[dirName]) {
+            vn.dirIf = true;
+            const prev = findPrevIfVn(parentChildren, vn._idx);
+            if (prev){
+                prev.__ifExprVNodes__.push({
+                    expr: value,
+                    vn,
+                    dir: elseIfMap[dirName]
+                })
+                vn.parent = prev.parent;
+            } else {
+                console.log(`${dirName} between v-if and v-esle(-if) will be ignored.`)
+            }
+        }
+    }
+    export function parse (){
+        // 解析缓存节点
+        while(cacheProcesseIfDir.length) {
+            const exprVns = cacheProcesseIfDir.splice(cacheProcesseIfDir.length - 1, 1)[0];
+            const processeCode = [];
+            const vnArgsCode = [];
+            const args = [getExprVal];
+            const parent = exprVns[0].vn.parent;
+            let realPath = [];
+            for (let i = exprVns.length - 1; i > -1; i--) {
+                const {expr, vn, dir} = exprVns[i];
+                // 从原先父节点卸载 vnode
+                if (i > 0) {
+                    const parentChildren = parent.parent.children;
+                    parentChildren.splice(vn._idx, 1);
+                }
+                if (expr) {
+                    realPath = realPath.concat(getRealDataPath(parent, expr));
+                }
+                // 解析生成 if else 判断函数
+                const vnNameCode = `_vn_${i}_`;
+                vnArgsCode.push(vnNameCode);
+                args.push(vn);
+                const judgeCode = `(_p(${vnNameCode}, "${expr}"))`;
+                const returnCode = `{return ${vnNameCode}}`;
+                if (dir === 'else') {
+                    processeCode.push(`else ${returnCode}`);
+                } else {
+                    processeCode.push(`${dir} ${judgeCode} ${returnCode}`)
+                }
+            }
+            saveVnToDataPath(unique(realPath), parent);
+            const judgeFn = Function.apply(
+                Function, 
+                [
+                    '_p'
+                ].concat(
+                    vnArgsCode,
+                    [processeCode.reverse().join("")]
+                )
+            )
+            try {
+                const exprFn = () => {
+                    return judgeFn.apply(
+                        judgeFn,
+                        args
+                    )
+                }
+                parent.children = [exprFn()];
+                if (!parent.dep[dirKey]) {
+                    parent.dep[dirKey] = [];
+                }
+                parent.dep[dirKey].push({
+                    expr: exprFn
+                });
+            } catch (e){
+                console.log(e);
+            }
+        }
+    }
+    export function update (vn: vNode){
+        const expr = <defFn>vn.dep[dirKey][0].expr;
+        const newVns = [expr()];
+        updateChildren(vn.parent.el, vn.children, newVns);
+        vn.children = newVns;
+    }
 }
+// 指令name对应指令处理模块
 const DirMap = {
     "v-for": VFor,
     "v-text": VText,
@@ -1126,8 +1250,6 @@ function _parse (vn: vNode){
                 dirName = 'v-on';
             } else if (bindRe.test(key)) { // bind
                 dirName = 'v-bind';
-            } else if (ifRe.test(key)) { // if elseIf else
-                
             }
             // 常规标签
             const oDirective = DirMap[dirName || key];
@@ -1144,7 +1266,7 @@ function parseItemVn (vn: vNode){
     _parse(vn);
     if (!vn.noParse) {
         if (vn.children && vn.children.length) {
-            parse(vn.children);
+            parse(vn.children, true);
             // children = children.concat(vn.children);
         }
     }
@@ -1152,14 +1274,19 @@ function parseItemVn (vn: vNode){
 /**
  * 解析指令
  * @param vns 
+ * @param isNoProcesse 是否解析优先级低的指令
  */
-export function parse (vns: vNode[]){
+export function parse (vns: vNode[], isNoProcesse?: boolean){
     let idx = -1;
     let vn;
     while (++idx < vns.length) {
         vn = vns[idx] as vNode;
         vn._idx = idx;
         parseItemVn(vn);
+    }
+    if (!isNoProcesse) {
+        // 处理if指令
+        VIf.parse();
     }
 }
 
