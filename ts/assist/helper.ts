@@ -1,5 +1,5 @@
 import { Store } from "./store";
-import { isString, isArray } from "./util";
+import { isString, isArray, strTrim } from "./util";
 
 /**
  * 节点相关操作
@@ -130,6 +130,16 @@ export namespace Dom {
     }
     export function setAttribute (elem: HTMLElement, name: string, val: string){
         elem.setAttribute(name, val);
+    }
+    export function removeClass(elem: HTMLElement, removeClassName: string) {
+        let className = (` ${elem.className} `).replace(/[\t\r\n]/g, " ");
+        const removeCls = (removeClassName || "").split(/\s+/);
+        removeCls.forEach(cls => {
+            if (className.indexOf(` ${cls} `) > -1 ) {
+                className = className.replace(` ${cls} `, '');
+            }
+        })
+        elem.className = strTrim(className);
     }
 }
 /**
@@ -275,6 +285,12 @@ export namespace Vnode {
             // chs.splice(startIdx, 0, vn)
             addVn(vnodes[startIdx], parentElm, refElm, vnodes, startIdx);
         }
+    }
+    export function createFragmentVn (vnCfg = <vNode>{}): vNode {
+        vnCfg.name = "#Fragment";
+        vnCfg.id = getId();
+        vnCfg.children = [];
+        return vnCfg
     }
 }
 
