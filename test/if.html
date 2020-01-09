@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html>
+    <head lang="en">
+        <meta charset="UTF-8">
+        <title></title>
+    </head>
+    <style>
+        .blue {
+            color: #00f;
+        }
+        .active {
+            color: #0088cc;
+        }
+        .red {
+            color: #F00;
+        }
+        .__clockDom__ {
+            display: none !important;
+        }
+    </style>
+    <body>
+        <div id="test" class="__clockDom__">
+            <div v-if="type === 'A'">A</div>
+            <div v-else-if="type === 'B'">B</div>
+            <div v-else-if="type === 'C'">C</div>
+            <div v-else>NOT A B C</div>
+        </div>
+        <script src="./lib/polyfill.js"></script>
+        <script src="./lib/sea.js"></script>
+        <script>
+            seajs.use(['./dist/main'], function (o){
+                window.$Mvvm = new o.Mvvm({
+                    data: {
+                        type: 'A'
+                    },
+                    el: '#test'
+                    
+                })
+            })
+        </script>
+    </body>
+</html>
